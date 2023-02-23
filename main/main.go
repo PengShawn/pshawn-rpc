@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"net/http"
 	pshawn_rpc "pshawn-rpc"
 	"sync"
 	"time"
@@ -33,11 +34,23 @@ func startServer(addr chan string) {
 	pshawn_rpc.Accept(l)
 }
 
-func main() {
-	log.SetFlags(0)
-	addr := make(chan string)
-	go startServer(addr)
-	client, _ := pshawn_rpc.DialHTTP("tcp", <-addr)
+func startServerWithHTTP(addrCh chan string) {
+	var foo Foo
+	if err := pshawn_rpc.Register(&foo); err != nil {
+		log.Fatal("register error:", err)
+	}
+	l, err := net.Listen("tcp", ":9999")
+	if err != nil {
+		log.Fatal("network error:", err)
+	}
+	log.Println("start rpc server on", l.Addr())
+	pshawn_rpc.HandleHTTP()
+	addrCh <- l.Addr().String()
+	_ = http.Serve(l, nil)
+}
+
+func call(addrCh chan string) {
+	client, _ := pshawn_rpc.DialHTTP("tcp", <-addrCh)
 	defer func() { _ = client.Close() }()
 
 	time.Sleep(time.Second)
@@ -56,4 +69,11 @@ func main() {
 		}(i)
 	}
 	wg.Wait()
+}
+
+func main() {
+	log.SetFlags(0)
+	ch := make(chan string)
+	go call(ch)
+	startServerWithHTTP(ch)
 }

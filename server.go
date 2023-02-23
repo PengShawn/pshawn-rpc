@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"net/http"
 	"pshawn-rpc/codec"
 	"reflect"
 	"strings"
@@ -221,4 +222,35 @@ func Register(rcvr interface{}) error {
 // for each incoming connection
 func Accept(lis net.Listener) {
 	DefaultServer.Accept(lis)
+}
+
+const (
+	connected        = "200 Connected to Pshawn RPC"
+	defaultRPCPath   = "_pshawnrpc_"
+	defaultDebugPath = "/debug/pshawnrpc"
+)
+
+// ServerHTTP implements a http.Handler that answers RPC requests
+func (server *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "CONNECT" {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_, _ = io.WriteString(w, "405 must CONNECT\n")
+		return
+	}
+	conn, _, err := w.(http.Hijacker).Hijack()
+	if err != nil {
+		log.Print("rpc hijacking ", req.RemoteAddr, ": ", err.Error())
+		return
+	}
+	_, _ = io.WriteString(conn, "HTTP/1.0"+connected+"\n\n")
+	server.ServeConn(conn)
+}
+
+func (server *Server) HandleHTTP() {
+	http.Handle(defaultRPCPath, server)
+}
+
+func HandleHTTP() {
+	DefaultServer.HandleHTTP()
 }

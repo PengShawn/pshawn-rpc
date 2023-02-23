@@ -222,6 +222,9 @@ func parseOptions(opts ...*Option) (*Option, error) {
 	if len(opts) == 0 || opts[0] == nil {
 		return DefaultOption, nil
 	}
+	if len(opts) != 1 {
+		return nil, errors.New("number of options is more than 1")
+	}
 	opt := opts[0]
 	opt.MagicNumber = DefaultOption.MagicNumber
 	if opt.CodecType == "" {
@@ -277,8 +280,7 @@ func Dial(network, address string, opts ...*Option) (client *Client, err error) 
 func NewHTTPClient(conn net.Conn, opt *Option) (*Client, error) {
 	_, _ = io.WriteString(conn, fmt.Sprintf("CONNECT %s HTTP/1.0\n\n", defaultRPCPath))
 
-	// Require successful HTTP response
-	// before switching to RPC protocol
+	// Require successful HTTP response before switching to RPC protocol
 	resp, err := http.ReadResponse(bufio.NewReader(conn), &http.Request{Method: "CONNECT"})
 	if err == nil && resp.Status == connected {
 		return NewClient(conn, opt)

@@ -30,7 +30,7 @@ func (m *methodType) newArgv() reflect.Value {
 	return argv
 }
 
-func (m *methodType) newReply() reflect.Value {
+func (m *methodType) newReplyv() reflect.Value {
 	replyv := reflect.New(m.ReplyType.Elem())
 	switch m.ReplyType.Elem().Kind() {
 	case reflect.Map:

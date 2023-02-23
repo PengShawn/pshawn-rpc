@@ -115,7 +115,7 @@ func (server *Server) readRequest(cc codec.Codec) (*request, error) {
 		return req, err
 	}
 	req.argv = req.mtype.newArgv()
-	req.replyv = req.mtype.newReply()
+	req.replyv = req.mtype.newReplyv()
 	argvi := req.argv.Interface()
 	if req.argv.Type().Kind() != reflect.Ptr {
 		argvi = req.argv.Addr().Interface()
@@ -226,7 +226,7 @@ func Accept(lis net.Listener) {
 
 const (
 	connected        = "200 Connected to Pshawn RPC"
-	defaultRPCPath   = "_pshawnrpc_"
+	defaultRPCPath   = "/_pshawnrpc_"
 	defaultDebugPath = "/debug/pshawnrpc"
 )
 
@@ -249,6 +249,8 @@ func (server *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 func (server *Server) HandleHTTP() {
 	http.Handle(defaultRPCPath, server)
+	http.Handle(defaultDebugPath, debugHTTP{server})
+	log.Println("rpc server debug path:", defaultDebugPath)
 }
 
 func HandleHTTP() {

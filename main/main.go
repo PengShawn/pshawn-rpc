@@ -37,7 +37,7 @@ func main() {
 	log.SetFlags(0)
 	addr := make(chan string)
 	go startServer(addr)
-	client, _ := pshawn_rpc.Dial("tcp", <-addr)
+	client, _ := pshawn_rpc.DialHTTP("tcp", <-addr)
 	defer func() { _ = client.Close() }()
 
 	time.Sleep(time.Second)

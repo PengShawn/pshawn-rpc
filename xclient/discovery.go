@@ -32,6 +32,7 @@ type MultiServerDiscovery struct {
 	index   int          // record the selected index for round-robin algorithm
 }
 
+// NewMultiServerDiscovery returns a MultiServerDiscovery.
 func NewMultiServerDiscovery(servers []string) *MultiServerDiscovery {
 	d := &MultiServerDiscovery{
 		servers: servers,
@@ -43,12 +44,12 @@ func NewMultiServerDiscovery(servers []string) *MultiServerDiscovery {
 
 var _ Discovery = (*MultiServerDiscovery)(nil)
 
-// Refresh doesn't make sense for MultiServerDiscovery, so ignore it
+// Refresh doesn't make sense for MultiServerDiscovery, so ignore it.
 func (d *MultiServerDiscovery) Refresh() error {
 	return nil
 }
 
-// Update the servers of discovery dynamically if needed
+// Update the servers of discovery dynamically if needed.
 func (d *MultiServerDiscovery) Update(servers []string) error {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -56,7 +57,7 @@ func (d *MultiServerDiscovery) Update(servers []string) error {
 	return nil
 }
 
-// Get a server according to mode
+// Get a server according to mode.
 func (d *MultiServerDiscovery) Get(mode SelectMode) (string, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
@@ -76,7 +77,7 @@ func (d *MultiServerDiscovery) Get(mode SelectMode) (string, error) {
 	}
 }
 
-// GetAll returns all servers
+// GetAll returns all servers.
 func (d *MultiServerDiscovery) GetAll() ([]string, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
